@@ -1,39 +1,39 @@
 # Contenu du repo
 
 ## step_by_step_rag.ipynb
-Notebook donnant un rundown des étapes élémentaires pour obtenir la base d'un RAG
+Notebook donnant les étapes élémentaires pour obtenir la base d'un RAG
 - Scraping de l'AI Act en Documents LangChain
 - Préparation de l'Index Vectoriel Azure
-- Appel Programatique à un LLM OpenAI déployé dans un AI Hub azure
+- Appel programmatique à un LLM OpenAI déployé dans un AI Hub Azure
 - Création d'un template de prompt
 - Création d'un RAG basique avec langgraph
 - Exploration de rag_simple.py et rag_chat.py
 ## globals.py
-Variables globales et classes utilisés par les RAGs
+Variables globales et classes utilisées par les RAGs
 ## rag_simple.py - [Tutoriel](https://python.langchain.com/docs/tutorials/rag/)
 Implémentation d'un RAG basique. 
-- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utilisé notre RAG dans une application streamlit. 
+- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utiliser notre RAG dans une application streamlit. 
 - Ce RAG ajoute à celui du notebook 
-    - une étape d'analyse de la question utilisateur afin d'afiner la requete envoyé à la base vectoriel.
-    - un ajout de citations à la réponse llm. 
+    - Une étape d'analyse de la question utilisateur afin d'affiner la requête envoyée à la base vectorielle.
+    - Un ajout de citations à la réponse llm. 
 ## rag_chat.py - [Tutoriel](https://python.langchain.com/docs/tutorials/qa_chat_history/)
-- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utilisé notre RAG dans une application streamlit.
+- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utiliser notre RAG dans une application streamlit.
 - Ce RAG 
-    - Utilise MessageState plutot qu'une class d'états comme pour rag_simple.py
-    - Passe dans **l'instruction systeme** le formattage des **citations** dans la réponse générer plutot que de le faire **apres la réponse générer** ce qui permet de **streamer** la génération dans l'application streamlit.
-    - Emploie **MemorySaver** afin de permettre au RAG de se référer aux **précédentes réponses générer**  
-    - Définie **l'étapes de recherche vectoriel comme un tool** ce qui permet au RAG de **choisir de l'utiliser ou non** plutot que de forcement y passer comme dans rag_simple.py qui défini cette étapes comme un état.
+    - Utilise MessageState plutôt qu'une classe d'états comme pour rag_simple.py
+    - Passe dans **l'instruction système** le formatage des **citations** dans la réponse générer plutôt que de le faire **après la réponse générée**, ce qui permet de **streamer** la génération dans l'application streamlit.
+    - Emploie **MemorySaver** afin de permettre au RAG de se référer aux **précédentes réponses générées**  
+    - Définie **l'étape de recherche vectoriel comme un tool** ce qui permet au RAG de **choisir de l'utiliser ou non** plutôt que de forcément y passer comme dans rag_simple.py qui définit cette étape comme un état.
 
 ## Application Démonstrative 
 ### rag_app.py
-Application streamlit qui emploie **rag_chat.py**. Les réponses sont streamé et le RAG est l'historique de conversation est consultable
+Application streamlit qui emploie **rag_chat.py**. Les réponses sont streamées et le RAG, l'historique de conversation, est consultable
 
-Lancer l'application avec la commande 
+Lancer l'application avec la commande suivante
 ```bash 
 streamlit run rag_app.py
 ```
 ### pages/rag_app_simple.py
-Application streamlit qui emploie **rag_simple.py**. 
+page streamlit qui emploie **rag_simple.py**. 
 
 
 ---
@@ -94,7 +94,7 @@ Ce process est fait via des modèles de vectorisation comme BERT ou ada2.
     - [AzureAISearch](https://python.langchain.com/docs/integrations/vectorstores/azuresearch/)
     - [AzureAISearchRetriever](https://python.langchain.com/docs/integrations/retrievers/azure_ai_search/)
     - [AzureEmbedding](https://python.langchain.com/docs/integrations/text_embedding/azureopenai/#setup)
-    -
+    - [Azure OData Filtering](https://learn.microsoft.com/en-us/azure/search/search-query-odata-filter)
 - ChatCompletion
     - [AzureChatOpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html)
     - [Streaming Answers](https://python.langchain.com/docs/how_to/chat_streaming/)
@@ -122,7 +122,7 @@ Sur la page d'accueil, vous pouvez **créer une Ressource de hub IA**. Avec cell
 
 Pour la création d'index vectoriel, il vous suffit de récupérer la **clef API** d'une ressource Azure AI Search préexistante.  
 
-Pour pouvoir exécuter le code des notebooks démonstratifs, compléter le fichier.env avec les informations relatives.
+Pour pouvoir exécuter le code des notebooks démonstratifs, compléter le fichier **.env** avec les informations relatives.
 
 ### Variables pour OpenAI
 - AZURE_OPENAI_API_ENDPOINT
@@ -134,3 +134,4 @@ Pour pouvoir exécuter le code des notebooks démonstratifs, compléter le fichi
 ### Variables pour Azure AI Search
 - SEARCH_ENDPOINT = "https://<nom_du_service>.search.windows.net" (https://ai102srch1716175.search.windows.net est le endpoint de la ressouce utilisé pour ce tutoriel)
 - SEARCH_KEY ([clef API de la ressource](https://portal.azure.com/#@saegus.com/resource/subscriptions/1091ae17-09a6-4df2-875a-14e064254ff7/resourceGroups/SAEGUS_CHATGPT/providers/Microsoft.Search/searchServices/ai102srch1716175/Keys))
+- SEARCH_INDEX = **lang_rag_index_2** 

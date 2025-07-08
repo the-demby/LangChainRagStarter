@@ -54,12 +54,12 @@ PROMPT = ChatPromptTemplate(
                 input_types={}, 
                 partial_variables={}, 
                 template="""
-                Tu est un expert legal qui conseil l'utilisateur sur toute question en lien avec l'AI Act. 
+                Tu es un expert légal qui conseille l'utilisateur sur toute question en lien avec l'AI Act. 
                 
-                En te basant sur le context suivant, répond à la question.  
-                Si il n'y à pas de context fourni ou que sont rapport à la question est marginal, précède ta réponse par la note suivante:
+                En te basant sur le contexte suivant, réponds à la question.  
+                S'il n'y a pas de contexte fourni ou que son rapport à la question est marginal, précède ta réponse par la note suivante:
 
-                "Ma base de connaissance semble limité pour répondre à votre question, les éléments de réponse suivant doivent être pris avec des pincettes !" 
+                "Ma base de connaissance semble limitée pour répondre à votre question, les éléments de réponse suivants doivent être pris avec des pincettes !" 
                 
                 \nQuestion: {question}
                 \nContext: {context} 
@@ -70,30 +70,21 @@ PROMPT = ChatPromptTemplate(
 )
 
 class Search(TypedDict):
-    """Search query."""
-    requete_indexe: Annotated[str, ..., "Cherche la requetes à envoyer à la base vectorielle à partir de cette question."]
+    """Format de sortie LLM pour transformer une question utilisateur en une requête pour une base vectorielle avec une liste de filtres."""
+    requete_indexe: Annotated[str, ..., "Cherche la requête à envoyer à la base vectorielle à partir de cette question."]
     nature: Annotated[
         List[Literal["considerant", "article", "annexe"]],
         ...,
-        "Nature des éléments parmis les quels chercher."
+        "Nature des éléments parmi lesquels chercher."
     ]
 
 def format_docs_into_citation(docs: list[Document]) -> str:
+    """Formateur basique de citations pour compléter les réponses du RAG."""
     formatted = [
         f"Source-{i}: [{doc.metadata['titre']}]({doc.metadata['url']})"
         for i, doc in enumerate(docs)
     ]
     return "\n\n"+"\n\n".join(formatted)
-
-class AnswerWithSources(TypedDict):
-    """An answer to the question, with sources."""
-
-    reponse: str
-    sources: Annotated[
-        List[str],
-        ...,
-        "Donne en markdown la liste des sources du context utilisé pour répondre à la question avec le format suivant: - [<titre>](<url>)).",
-    ]
 
 
 

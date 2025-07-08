@@ -8,6 +8,7 @@ from typing_extensions import List, TypedDict
 from globals import PROMPT, LLM, VECTOR_STORE, Search, format_docs_into_citation
 
 class State(TypedDict):
+    """États de notre RAG."""
     question: str
     requete_indexe: Search
     context: List[Document]
@@ -19,10 +20,10 @@ def get_compiled_rag(
         vector_store: AzureSearch=VECTOR_STORE
 ) -> CompiledStateGraph:
     """
-    Fonction qui retourne un RAG pret a être questionner
+    Fonction qui retourne un RAG prêt à être questionné.
     """
     def query_analysis(state: State):
-        """Fonction qui reformule la question utilisateur en requete à envoyer vers l'index vectoriel."""
+        """Fonction qui reformule la question utilisateur en requête à envoyer vers l'index vectoriel."""
         structured_llm = llm.with_structured_output(Search)
         requete_index = structured_llm.invoke(state["question"])
         return {"requete_indexe": requete_index}
@@ -36,7 +37,7 @@ def get_compiled_rag(
         return {"context": retrieved_docs}
 
     def generate(state: State):
-        """Fonction qui génére la réponse du model."""
+        """Fonction qui génère la réponse du modèle en fonction du contexte récupéré."""
         docs_content = "\n".join(doc.page_content for doc in state["context"])
         messages = setup_prompt.invoke({"question": state["question"], "context": docs_content})
         response = llm.invoke(messages)
