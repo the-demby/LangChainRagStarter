@@ -1,3 +1,42 @@
+# Contenu du repo
+
+## step_by_step_rag.ipynb
+Notebook donnant un rundown des étapes élémentaires pour obtenir la base d'un RAG
+- Scraping de l'AI Act en Documents LangChain
+- Préparation de l'Index Vectoriel Azure
+- Appel Programatique à un LLM OpenAI déployé dans un AI Hub azure
+- Création d'un template de prompt
+- Création d'un RAG basique avec langgraph
+- Exploration de rag_simple.py et rag_chat.py
+## globals.py
+Variables globales et classes utilisés par les RAGs
+## rag_simple.py - [Tutoriel](https://python.langchain.com/docs/tutorials/rag/)
+Implémentation d'un RAG basique. 
+- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utilisé notre RAG dans une application streamlit. 
+- Ce RAG ajoute à celui du notebook 
+    - une étape d'analyse de la question utilisateur afin d'afiner la requete envoyé à la base vectoriel.
+    - un ajout de citations à la réponse llm. 
+## rag_chat.py - [Tutoriel](https://python.langchain.com/docs/tutorials/qa_chat_history/)
+- get_comiled_rag: Fonction qui retourne un CompiledStateGraph afin d'utilisé notre RAG dans une application streamlit.
+- Ce RAG 
+    - Utilise MessageState plutot qu'une class d'états comme pour rag_simple.py
+    - Passe dans **l'instruction systeme** le formattage des **citations** dans la réponse générer plutot que de le faire **apres la réponse générer** ce qui permet de **streamer** la génération dans l'application streamlit.
+    - Emploie **MemorySaver** afin de permettre au RAG de se référer aux **précédentes réponses générer**  
+    - Définie **l'étapes de recherche vectoriel comme un tool** ce qui permet au RAG de **choisir de l'utiliser ou non** plutot que de forcement y passer comme dans rag_simple.py qui défini cette étapes comme un état.
+
+## Application Démonstrative 
+### rag_app.py
+Application streamlit qui emploie **rag_chat.py**. Les réponses sont streamé et le RAG est l'historique de conversation est consultable
+
+Lancer l'application avec la commande 
+```bash 
+streamlit run rag_app.py
+```
+### pages/rag_app_simple.py
+Application streamlit qui emploie **rag_simple.py**. 
+
+
+---
 # Composants d'un RAG 
 
 <img src="https://codingscape.com/hs-fs/hubfs/llamaindex_rag_overview.png?width=1602&height=780&name=llamaindex_rag_overview.png" width="1000">
@@ -47,6 +86,25 @@ Ce process est fait via des modèles de vectorisation comme BERT ou ada2.
 ### Générateur de Réponse
 &emsp;Le générateur de réponse est le plus souvent un modèle LLM classique à qui on donne la question utilisateur ainsi que le contexte récupéré de l'index. 
 <p style="line-height: 0;">La question peut alors être formatée pour inclure des liens cliquables vers les documents passés en référence.</p>
+
+## Les concepts LangChain employés
+- Vector Stores
+    - [Document](https://python.langchain.com/api_reference/core/documents/langchain_core.documents.base.Document.html)
+    - [DocumentLoader](https://python.langchain.com/docs/integrations/document_loaders/)
+    - [AzureAISearch](https://python.langchain.com/docs/integrations/vectorstores/azuresearch/)
+    - [AzureAISearchRetriever](https://python.langchain.com/docs/integrations/retrievers/azure_ai_search/)
+    - [AzureEmbedding](https://python.langchain.com/docs/integrations/text_embedding/azureopenai/#setup)
+    -
+- ChatCompletion
+    - [AzureChatOpenAI](https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html)
+    - [Streaming Answers](https://python.langchain.com/docs/how_to/chat_streaming/)
+- RAG App
+    - [StateGraph](https://pypi.org/project/langgraph/)
+    - [PromptTemplate](https://python.langchain.com/api_reference/core/prompts.html)
+    - [Chat Interface with Message Chaining](https://python.langchain.com/docs/tutorials/qa_chat_history/)
+    - [Document References](https://python.langchain.com/docs/how_to/qa_citations/)
+    - [Structuring LLM Outputs](https://python.langchain.com/docs/how_to/structured_output/)
+    - [Agent Tools](https://python.langchain.com/docs/how_to/custom_tools/)
 
 ## Ressources Azures
 
