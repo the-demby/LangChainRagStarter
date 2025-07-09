@@ -7,7 +7,8 @@ from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
     SearchIndex, SimpleField, SearchField, SearchFieldDataType,
     VectorSearch, HnswAlgorithmConfiguration, VectorSearchProfile,
-    SemanticConfiguration, SemanticPrioritizedFields, SemanticSearch, SemanticField
+    SemanticConfiguration, SemanticPrioritizedFields, SemanticSearch, SemanticField,
+    AzureOpenAIVectorizer, AzureOpenAIVectorizerParameters
 )
 from dotenv import load_dotenv
 from tqdm import tqdm
@@ -225,53 +226,74 @@ def create_or_reset_index():
         endpoint=AZURE_SEARCH_ENDPOINT,
         credential=AzureKeyCredential(AZURE_SEARCH_KEY)
     )
+    # --- Suppression de l’ancien index
     try:
-        if INDEX_NAME in [i.name for i in idx_client.list_indexes()]:
+        if INDEX_NAME in [idx.name for idx in idx_client.list_indexes()]:
             idx_client.delete_index(INDEX_NAME)
             print(f"Index '{INDEX_NAME}' supprimé")
     except Exception as e:
         print(f"Erreur suppression index : {e}")
 
+    # --- Champs de l’index
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-        SimpleField(name="search_result_link", type=SearchFieldDataType.String, filterable=True),
-        SimpleField(name="page_language", type=SearchFieldDataType.String, filterable=True),
-        SimpleField(name="actionnaires", type=SearchFieldDataType.String, filterable=True),
-        SearchField(name="content", type=SearchFieldDataType.String, searchable=True),
+        SimpleField(name="search_result_link", type=SearchFieldDataType.String, filterable=True, retrievable=True),
+        SimpleField(name="page_language", type=SearchFieldDataType.String, filterable=True, retrievable=True),
+        SimpleField(name="actionnaires", type=SearchFieldDataType.String, retrievable=True),
+        SearchField(name="content", type=SearchFieldDataType.String, searchable=True, retrievable=True),
         SearchField(
             name="embedding",
             type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-            searchable=True,
+            searchable=True, retrievable=False,
             vector_search_dimensions=1536,
             vector_search_profile_name="default"
         )
     ]
 
-    vector_search = VectorSearch(
-        profiles=[VectorSearchProfile(name="default", algorithm_configuration_name="hnsw-config")],
-        algorithms=[HnswAlgorithmConfiguration(name="hnsw-config")]
-    )
-
-    semantic_config = SemanticConfiguration(
-        name="default",
-        prioritized_fields=SemanticPrioritizedFields(
-            title_field=SemanticField(field_name="content"),
-            content_fields=[SemanticField(field_name="content")]
+    # -- (3) Vectorizer (nom sans espace ni majuscule)
+    vect_name = "openai_vectorizer"
+    vectorizer = AzureOpenAIVectorizer(
+        vectorizer_name=vect_name,
+        parameters=AzureOpenAIVectorizerParameters(
+            resource_url=AZURE_OPENAI_ENDPOINT,
+            deployment_name=EMBEDDING_MODEL,
+            model_name=EMBEDDING_MODEL,
+            api_key=AZURE_OPENAI_KEY         
         )
     )
 
+    vector_search = VectorSearch(
+        vectorizers=[vectorizer],
+        profiles=[VectorSearchProfile(
+            name="default",
+            algorithm_configuration_name="hnsw-config",
+            vectorizer_name=vect_name
+        )],
+        algorithms=[HnswAlgorithmConfiguration(name="hnsw-config")]
+    )
+
+    # --- Recherche sémantique
     semantic_search = SemanticSearch(
-        configurations=[semantic_config],
+        configurations=[
+            SemanticConfiguration(
+                name="default",
+                prioritized_fields=SemanticPrioritizedFields(
+                    title_field=SemanticField(field_name="content"),
+                    content_fields=[SemanticField(field_name="content")]
+                )
+            )
+        ],
         default_configuration_name="default"
     )
 
+    # --- Création de l’index
     idx = SearchIndex(
         name=INDEX_NAME,
         fields=fields,
         vector_search=vector_search,
+        vectorizers=[vectorizer],
         semantic_search=semantic_search
     )
-
     idx_client.create_or_update_index(idx)
     print(f"Index '{INDEX_NAME}' (re)créé")
 
